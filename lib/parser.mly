@@ -17,6 +17,7 @@
 %token ELSE
 %token LPAREN
 %token RPAREN
+%token RARROW
 %token EOF
 
 %nonassoc NOT

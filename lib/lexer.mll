@@ -17,6 +17,7 @@ rule read =
   | "=" { EQUALS }
   | "(" { LPAREN }
   | ")" { RPAREN }
+  | "->" { RPAREN }
   | "let" { LET }
   | "in" { IN }
   | "if" { IF }
