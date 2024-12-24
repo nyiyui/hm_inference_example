@@ -11,5 +11,12 @@ let test_eval src expected =
 
 let () = test_eval "1" (Int 1)
 let () = test_eval "0 * 1 + 2 * 4" (Int 8)
+let () = test_eval "let x = 1 in x" (Int 1)
 let () = test_eval "let x = 1 in x + 2" (Int 3)
+let () = test_eval "let x = 1 in x + let y = 2 in y" (Int 3)
 let () = test_eval "let x = 1 in x + let x = 2 in x" (Int 3)
+let () = test_eval "let x = 1 in x + let y = 2 in (y + x)" (Int 4)
+(* let x = 1 in x + let y = 2 in (y + x) *)
+(* let x = 1 in x + 2 + x *)
+(* 1 + 2 + 1 *)
+(* 4 *)

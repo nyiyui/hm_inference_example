@@ -14,7 +14,8 @@ type 'i expr =
   | Bool of bool
   | OpUnary of unaryOp * 'i expr
   | OpBinary of binaryOp * 'i expr * 'i expr
-  | Let of 'i * 'i expr * 'i expr
+  | Closure of 'i * 'i expr
+  | Application of 'i expr * 'i expr (* actually a binary operation, but make it a separate constructor since it has special behaviour *)
   | If of 'i expr * 'i expr * 'i expr
 
 let string_of_expr (e : string expr) : string =
@@ -31,7 +32,8 @@ let string_of_expr (e : string expr) : string =
         | Mul -> string_of_expr' e1 ^ " * " ^ string_of_expr' e2
         | And -> string_of_expr' e1 ^ " && " ^ string_of_expr' e2
         | Or -> string_of_expr' e1 ^ " || " ^ string_of_expr' e2)
-    | Let (x, e1, e2) -> "let " ^ x ^ " = " ^ string_of_expr' e1 ^ " in " ^ string_of_expr' e2
+    | Closure (x, e) -> x ^ " -> " ^ string_of_expr' e
+    | Application (e1, e2) -> "(" ^ string_of_expr' e1 ^ ") (" ^ string_of_expr' e2 ^ ")"
     | If (e1, e2, e3) -> "if " ^ string_of_expr' e1 ^ " then " ^ string_of_expr' e2 ^ " else " ^ string_of_expr' e3
   in
   string_of_expr' e
