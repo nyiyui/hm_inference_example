@@ -1,0 +1,13 @@
+(library
+ (name small_functional_language)
+ (modules ast eval lexer parser))
+
+(menhir
+ (modules parser))
+
+(ocamllex lexer)
+
+(test
+  (name test)
+  (modules test)
+  (libraries small_functional_language))

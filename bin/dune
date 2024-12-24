@@ -1,0 +1,4 @@
+(executable
+ (public_name small_functional_language)
+ (name main)
+ (libraries small_functional_language))
