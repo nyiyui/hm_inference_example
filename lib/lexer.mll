@@ -5,7 +5,7 @@ let space = [' ' '\t' '\n' '\r']+
 let digit = ['0'-'9']
 let int = '-'? digit+
 let letter = ['a'-'z' 'A'-'Z']
-let id = letter (letter | digit | '_')*
+let id = letter (letter | digit | '_' | '-' | '\'' )*
 rule read =
   parse
   | space { read lexbuf }
@@ -17,7 +17,7 @@ rule read =
   | "=" { EQUALS }
   | "(" { LPAREN }
   | ")" { RPAREN }
-  | "->" { RPAREN }
+  | "->" { RARROW }
   | "let" { LET }
   | "in" { IN }
   | "if" { IF }

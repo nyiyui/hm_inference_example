@@ -20,10 +20,10 @@
 %token RARROW
 %token EOF
 
+%right RARROW
 %nonassoc NOT
 %nonassoc IN
 %nonassoc ELSE
-%left EQUALS
 %left PLUS
 %left TIMES
 
@@ -36,6 +36,11 @@ program:
   ;
 
 expr:
+  | e1 = expr; e2 = expr_no_app %prec RARROW { Application (e1, e2) }
+  | e = expr_no_app { e }
+  ;
+
+expr_no_app:
   | i = INT { Int i }
   | x = ID { Var x }
   | TRUE { Bool true }
@@ -46,4 +51,5 @@ expr:
   | IF; e1 = expr; THEN; e2 = expr; ELSE; e3 = expr { If (e1, e2, e3) }
   | LET; x = ID; EQUALS; e1 = expr; IN; e2 = expr { Application (Closure (x, e2), e1) }
   | LPAREN; e = expr; RPAREN { e }
+  | x = ID; RARROW; e = expr { Closure (x, e) }
   ;
