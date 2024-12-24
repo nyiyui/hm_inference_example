@@ -5,7 +5,7 @@ let is_value : 'a expr -> bool = function
   | Int _ | Bool _ -> true
   | _ -> false
 
-  (** [subst e v x] is [e] with the value [v] substituted in for the name/variable [x] *)
+(** [subst e v x] is [e] with the value [v] substituted in for the name/variable [x] *)
 let rec subst e v x = match e with
   | Int _ | Bool _ -> e
   | Var y -> if y = x then v else e
