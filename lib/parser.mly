@@ -3,7 +3,8 @@
 %}
 
 %token <int> INT
-%token <string> ID
+%token <string> ID_VALUE
+%token <string> ID_TYPE
 %token TRUE
 %token FALSE
 %token PLUS
@@ -26,6 +27,7 @@
 %nonassoc ELSE
 %left PLUS
 %left TIMES
+%nonassoc TRUE FALSE INT ID_VALUE ID_TYPE LPAREN
 
 %start <string Ast.expr> program
 
@@ -36,20 +38,25 @@ program:
   ;
 
 expr:
-  | e1 = expr; e2 = expr_no_app %prec RARROW { Application (e1, e2) }
-  | e = expr_no_app { e }
+  | e = expr_op { e }
+  | e1 = expr; e2 = expr_simple { Application (e1, e2) }
+  | LET; x = ID_VALUE; EQUALS; e1 = expr; IN; e2 = expr { Application (Closure (x, e2), e1) }
+  | x = ID_VALUE; RARROW; e = expr { Closure (x, e) }
+  | IF; e1 = expr; THEN; e2 = expr; ELSE; e3 = expr { If (e1, e2, e3) }
   ;
 
-expr_no_app:
+expr_op:
+  | NOT; e = expr_op { OpUnary (Not, e) }
+  | e1 = expr_op; PLUS; e2 = expr_op { OpBinary (Add, e1, e2) }
+  | e1 = expr_op; TIMES; e2 = expr_op { OpBinary (Mul, e1, e2) }
+  | e = expr_simple { e }
+  ;
+
+expr_simple:
   | i = INT { Int i }
-  | x = ID { Var x }
+  | x = ID_VALUE { Var x }
+  | x = ID_TYPE { Type x }
   | TRUE { Bool true }
   | FALSE { Bool false }
-  | NOT; e = expr { OpUnary (Not, e) }
-  | e1 = expr; PLUS; e2 = expr { OpBinary (Add, e1, e2) }
-  | e1 = expr; TIMES; e2 = expr { OpBinary (Mul, e1, e2) }
-  | IF; e1 = expr; THEN; e2 = expr; ELSE; e3 = expr { If (e1, e2, e3) }
-  | LET; x = ID; EQUALS; e1 = expr; IN; e2 = expr { Application (Closure (x, e2), e1) }
   | LPAREN; e = expr; RPAREN { e }
-  | x = ID; RARROW; e = expr { Closure (x, e) }
   ;

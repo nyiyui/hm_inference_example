@@ -3,6 +3,7 @@ open Ast
 (** [subst e v x] is [e] with the value [v] substituted in for the name/variable [x] *)
 let rec subst e v x = match e with
   | Int _ | Bool _ -> e
+  | Type _ -> failwith "TODO"
   | Var y -> if y = x then v else e
   | OpUnary (uop, e1) -> OpUnary (uop, subst e1 v x)
   | OpBinary (bop, e1, e2) -> OpBinary (bop, subst e1 v x, subst e2 v x)
@@ -13,6 +14,7 @@ let rec subst e v x = match e with
 let rec eval (e : 'a expr) : 'a expr = match e with
   | Int _ | Bool _ | Closure _ -> e
   | Var x -> failwith ("unbound variable " ^ x ^ " while evaluating " ^ string_of_expr e)
+  | Type _ -> failwith "TODO"
   | OpUnary (uop, e1) -> eval_uop uop e1
   | OpBinary (bop, e1, e2) -> eval_bop bop e1 e2
   | Application (e1, e2) -> (match eval e1 with

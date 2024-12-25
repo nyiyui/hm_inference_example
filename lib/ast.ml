@@ -10,6 +10,7 @@ type binaryOp =
 
 type 'i expr =
   | Var of 'i
+  | Type of 'i
   | Int of int
   | Bool of bool
   | OpUnary of unaryOp * 'i expr
@@ -22,6 +23,7 @@ let string_of_expr (e : string expr) : string =
   let rec string_of_expr' (e : string expr) : string =
     match e with
     | Var x -> x
+    | Type x -> x
     | Int n -> string_of_int n
     | Bool b -> string_of_bool b
     | OpUnary (op, e) -> (match op with
