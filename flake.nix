@@ -21,6 +21,7 @@
           packages = with pkgs; [
             ocaml
             ocamlPackages.menhir
+            ocamlPackages.utop
             nixfmt-rfc-style
             dune_3
           ];

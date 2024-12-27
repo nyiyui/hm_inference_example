@@ -40,7 +40,7 @@ program:
 expr:
   | e = expr_op { e }
   | e1 = expr; e2 = expr_simple { Application (e1, e2) }
-  | LET; x = ID_VALUE; EQUALS; e1 = expr; IN; e2 = expr { Application (Closure (x, e2), e1) }
+  | LET; x = ID_VALUE; EQUALS; e1 = expr; IN; e2 = expr { Let (x, e1, e2) }
   | x = ID_VALUE; RARROW; e = expr { Closure (x, e) }
   | IF; e1 = expr; THEN; e2 = expr; ELSE; e3 = expr { If (e1, e2, e3) }
   ;
@@ -55,7 +55,6 @@ expr_op:
 expr_simple:
   | i = INT { Int i }
   | x = ID_VALUE { Var x }
-  | x = ID_TYPE { Type x }
   | TRUE { Bool true }
   | FALSE { Bool false }
   | LPAREN; e = expr; RPAREN { e }
