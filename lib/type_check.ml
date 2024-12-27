@@ -1,7 +1,7 @@
 open Ast
 
 (* use variable names: ct, ct1 *)
-type tConTypes =
+type tConType =
   | TClosure
   | TApplication
   (* TList etc... *)
@@ -9,7 +9,7 @@ type tConTypes =
 (* use variable names: t, t1 *)
 type typ =
   | TVar of string
-  | TCon of tConTypes * typ list
+  | TCon of tConType * typ list
   | TKind
   | TInt
   | TBool
@@ -124,20 +124,30 @@ let rec unify (t1 : typ) (t2 : typ) : subst = match t1, t2 with
   | TVar x, t when not_contains x t -> [(x, t)]
   | t, TVar x when not_contains x t -> [(x, t)]
   | TCon (TClosure, [lhs1; rhs1]), TCon (TClosure, [lhs2; rhs2]) ->
+      (* TODO: generalize for any [TCon] with same [tConType] and same number of children *)
       let s1 = unify lhs1 lhs2 in
       (* type variable substitution must happen simultaneously *)
       let s2 = unify (apply_typ s1 rhs1) (apply_typ s1 rhs2) in
       compose s1 s2
   | _ -> failwith "unification failed"
 
-let rec infer (e : 'i expr) (env : Env.t) : typ * subst = match e with
+let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
+  let unary_expect s t = function
+    | TVar x -> let s' = [(x, t)] in (t, compose s s')
+    | t' when t' = t -> (t', s)
+    | _ -> failwith "not must be on bool" in
+  match e with
   | Var x ->
       let t = Env.lookup env x in
       let res = instantiate t in
       (res, [])
   | Int _ -> (TInt, [])
   | Bool _ -> (TBool, [])
-  | OpUnary _ -> failwith "TODO1"
+  | OpUnary (op, e) ->
+      let t, s = infer e env in
+      (match op with
+      | Not -> unary_expect s TBool t
+      | Neg-> unary_expect s TInt t)
   | OpBinary _ -> failwith "TODO2"
   | Closure (x, e) ->
       let a = TVar (gensym ()) in

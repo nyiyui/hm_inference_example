@@ -8,6 +8,7 @@
 %token TRUE
 %token FALSE
 %token PLUS
+%token MINUS
 %token TIMES
 %token EQUALS
 %token NOT
@@ -47,6 +48,7 @@ expr:
 
 expr_op:
   | NOT; e = expr_op { OpUnary (Not, e) }
+  | MINUS; e = expr_op { OpUnary (Neg, e) }
   | e1 = expr_op; PLUS; e2 = expr_op { OpBinary (Add, e1, e2) }
   | e1 = expr_op; TIMES; e2 = expr_op { OpBinary (Mul, e1, e2) }
   | e = expr_simple { e }
