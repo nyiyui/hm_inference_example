@@ -1,10 +1,12 @@
 open Ast
 
+(* use variable names: ct, ct1 *)
 type tConTypes =
   | TClosure
   | TApplication
   (* TList etc... *)
 
+(* use variable names: t, t1 *)
 type typ =
   | TVar of string
   | TCon of tConTypes * typ list
@@ -12,10 +14,17 @@ type typ =
   | TInt
   | TBool
 
+(* use variable names: q, q1 *)
 type typ_scheme = string list * typ
 
+(* use variable names: s, s1 *)
 type subst = (string * typ) list
 
+
+let rec not_contains (a : string) (t : typ) : bool = match t with
+  | TVar b when b = a -> false
+  | TCon (_, ts) -> List.map (not_contains a) ts |> List.fold_left (&&) true
+  | _ -> true
 
 let remove_duplicates (type a) (l: a list) =
   let module S = Set.Make(struct type t = a let compare = compare end) in
@@ -58,14 +67,12 @@ let rec apply_typ (s : subst) (t : typ) : typ = match t with
   | TCon (c, ts) -> TCon (c, List.map (apply_typ s) ts)
   | _ -> t
 
-
+(** [apply_typ (compose s1 s2) t] is equivalent to [apply_typ s2 (apply_typ s1 t)]. *)
 let compose (s1 : subst) (s2 : subst) : subst =
-  (* [apply_subst s s'] is every entry of [s'] with [s] applied to the type. *)
-  let apply_subst (s : subst) (s' : subst) : subst =
-    List.map (fun (x, t) -> (x, apply_typ s t)) s'
-  in
-  let s2' = apply_subst s1 s2 in
-  List.map (fun (x, t) -> if List.exists (fun (y, _) -> x = y) s2' then [(x, t)] else []) s1 |> List.fold_left (@) s2'
+  (* apply s1 to each type in s2, and then add in substitutions from s1 that s2 does not have *)
+  let s1' = List.map (fun (x, t) -> (x, apply_typ s2 t)) s1 in
+  let s2' = List.filter (fun (x, _) -> List.find_opt (fun (y, _) -> x = y) s1' = None) s2 in
+  s1' @ s2'
 
 let lower (t : typ) : typ =
   let vars = vars_in t in
@@ -113,9 +120,13 @@ let rec unify (t1 : typ) (t2 : typ) : subst = match t1, t2 with
   | TKind, TKind -> []
   | TInt, TInt -> []
   | TBool, TBool -> []
-  | TVar x, t -> if t = TVar x then [] else [(x, t)]
-  | t, TVar x -> [(x, t)]
-  | TCon (c1, ts1), TCon (c2, ts2) when c1 = c2 -> List.concat (List.map2 unify ts1 ts2)
+  | TVar x, TVar y when x = y -> []
+  | TVar x, t when not_contains x t -> [(x, t)]
+  | t, TVar x when not_contains x t -> [(x, t)]
+  | TCon (TClosure, [lhs1; rhs1]), TCon (TClosure, [lhs2; rhs2]) ->
+      let s1 = unify lhs1 lhs2 in
+      let s2 = unify rhs1 rhs2 in
+      compose s1 s2
   | _ -> failwith "unification failed"
 
 let rec infer (e : 'i expr) (env : Env.t) : typ * subst = match e with
@@ -136,9 +147,9 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst = match e with
   | Application (e1, e2) ->
       let a = TVar (gensym ()) in
       let (t1, s1) = infer e1 env in (* left hand side *)
-      let env1 = apply_env s1 env in (* LHS side might contain useful info (e.g. the func only takes in int, or `(plus1 x) (id x)' ) *)
+      let env1 = apply_env s1 env in (* LHS side might have useful info (e.g. the func only takes in int, or `(plus1 x) (id x)' ) *)
       let (t2, s2) = infer e2 env1 in (* right hand side *)
-      let t1' = apply_typ s2 t1 in (* similarly, RHS might contains something useful about the LHS *)
+      let t1' = apply_typ s2 t1 in (* similarly, RHS might have something useful about the LHS *)
       let t3 = TCon (TClosure, [t2; a]) in
       let s3 = unify t1' t3 in
       let () = print_endline ("unify " ^ (string_of_typ t1') ^ " and " ^ (string_of_typ t3) ^ " ==> " ^ (string_of_subst s3)) in

@@ -1,31 +1,74 @@
 open Small_functional_language
+open Type_check
 
 let test_eval src expected =
   let lexbuf = Lexing.from_string src in
   let ast = Parser.program Lexer.read lexbuf in
   let result = Eval.eval ast in
   if result = expected then
-    print_endline "test_eval OK"
+    print_endline ("test_eval OK " ^ src)
   else
     failwith ("failed - got " ^ (Ast.string_of_expr result))
 
+(*
 let test_infer src expected =
   let lexbuf = Lexing.from_string src in
   let ast = Parser.program Lexer.read lexbuf in
   let () = print_endline ("infer " ^ (Ast.string_of_expr ast)) in
-  let result = Type_check.infer ast Type_check.Env.empty |> fst in
-  let result = Type_check.lower result in
+  let result = infer ast Env.empty |> fst in
+  let result = lower result in
   if result = expected then
-    print_endline ("test_infer OK " ^ (Type_check.string_of_typ result))
+    print_endline ("test_infer OK " ^ (string_of_typ result))
   else
-    failwith ("failed - got " ^ (Type_check.string_of_typ result))
+    failwith ("failed - got " ^ (string_of_typ result))
+*)
 
-let test_unify (t1 : Type_check.typ) (t2 : Type_check.typ) (expected : Type_check.subst) =
-  let result = Type_check.unify t1 t2 in
+let test_unify (t1 : typ) (t2 : typ) (expected : subst) =
+  let result = unify t1 t2 in
   if result = expected then
-    print_endline ("test_unify OK " ^ (Type_check.string_of_typ t1) ^ " " ^ (Type_check.string_of_typ t2))
+    print_endline ("test_unify OK " ^ (string_of_typ t1) ^ " " ^ (string_of_typ t2))
   else
-    failwith ("failed - got " ^ (Type_check.string_of_typ t1) ^ " " ^ (Type_check.string_of_typ t2) ^ " ==> " ^ (Type_check.string_of_subst result))
+    failwith ("failed - got " ^ (string_of_typ t1) ^ " " ^ (string_of_typ t2) ^ " ==> " ^ (string_of_subst result))
+
+let test_unify_property (t1 : typ) (t2 : typ) =
+  let s = unify t1 t2 in
+  let t1' = apply_typ s t1 in
+  let t2' = apply_typ s t2 in
+  if t1' = t2' then
+    print_endline ("test_unify OK " ^ (string_of_typ t1) ^ " " ^ (string_of_typ t2))
+  else
+    failwith ("failed - got "
+    ^ (string_of_typ t1)
+    ^ " "
+    ^ (string_of_typ t2)
+    ^ " ==> "
+    ^ (string_of_subst s)
+    ^ " so forms "
+    ^ (string_of_typ t1')
+    ^ " and "
+    ^ (string_of_typ t2')
+    )
+
+let test_compose_property (t1 : typ) (s1 : subst) (s2 : subst) : unit =
+  let s3 = compose s1 s2 in
+  let t2 = apply_typ s2 (apply_typ s1 t1) in
+  let t3 = apply_typ s3 t1 in
+  if t2 = t3 then
+    print_endline "test_compose_property OK"
+  else
+    failwith ("test_compose_property failed\n- t1 = "
+    ^ string_of_typ t1
+    ^ " ; t2 = "
+    ^ string_of_typ t2
+    ^ " ; t3 = "
+    ^ string_of_typ t3
+    ^ "\n; s1 = "
+    ^ string_of_subst s1
+    ^ " ; s2 = "
+    ^ string_of_subst s2
+    ^ " ; s3 = "
+    ^ string_of_subst s3
+    )
 
 let () = test_eval "1" (Int 1)
 let () = test_eval "0 * 1 + 2 * 4" (Int 8)
@@ -51,15 +94,30 @@ let () = test_eval "let f = x -> y -> x + y in f 1 2" (Int 3)
 let () = test_eval "let add1 = x -> (x + 1) in let compose-twice = (f -> x -> f (f x)) in compose-twice add1 1" (Int 3)
 
 (*
-let () = test_infer "1" Type_check.TInt
-let () = test_infer "x -> x" (Type_check.TCon (Type_check.TClosure, [Type_check.TVar("$1"); Type_check.TVar("$1")]))
-let () = test_infer "let id = x -> x in id" (Type_check.TCon (Type_check.TClosure, [Type_check.TVar("$1"); Type_check.TVar("$1")]))
+let () = test_infer "1" TInt
+let () = test_infer "x -> x" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
+let () = test_infer "let id = x -> x in id" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
 *)
 
-let () = test_unify Type_check.TInt Type_check.TInt []
+let () = test_unify TInt TInt []
+(*
 let () = test_unify
-  (Type_check.TCon (Type_check.TClosure, [Type_check.TVar "$1"; Type_check.TVar "$1"]))
-  (Type_check.TCon (Type_check.TClosure, [Type_check.TVar "$2"; Type_check.TInt]))
-  [("$1", Type_check.TInt)]
+  (TCon (TClosure, [TVar "$1"; TVar "$1"]))
+  (TCon (TClosure, [TInt; TVar "$2"]))
+  [("$1", TInt)]
 
-let () = test_infer "let id = x -> x in id 1" Type_check.TInt
+let () = test_infer "let id = x -> x in id 1" TInt
+*)
+
+let () = test_compose_property
+  (TCon (TClosure, [TVar "$1"; TVar "$2"]))
+  [("$2", TCon (TClosure, [TVar "$3"; TInt]))]
+  [("$1", TBool); ("$3", TInt)]
+
+let () = test_unify_property
+  (TCon (TClosure, [TInt; TVar "$1"]))
+  (TCon (TClosure, [TVar "$2"; TBool]))
+
+let () = test_unify_property
+  (TCon (TClosure, [TVar "$1"; TVar "$1"]))
+  (TCon (TClosure, [TInt; TVar "$2"]))
