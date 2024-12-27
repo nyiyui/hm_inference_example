@@ -134,7 +134,6 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst = match e with
   | Var x ->
       let t = Env.lookup env x in
       let res = instantiate t in
-      let () = print_endline ("instantiate " ^ (string_of_typ_scheme t) ^ " ==> " ^ (string_of_typ res)) in
       (res, [])
   | Int _ -> (TInt, [])
   | Bool _ -> (TBool, [])
@@ -153,13 +152,11 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst = match e with
       let t1' = apply_typ s2 t1 in (* similarly, RHS might have something useful about the LHS *)
       let t3 = TCon (TClosure, [t2; a]) in
       let s3 = unify t1' t3 in
-      let () = print_endline ("unify " ^ (string_of_typ t1') ^ " and " ^ (string_of_typ t3) ^ " ==> " ^ (string_of_subst s3)) in
       let s4 = compose s3 (compose s2 s1) in
       (apply_typ s4 a, s4)
   | Let (x, e1, e2) ->
       let (t1, s1) = infer e1 env in
       let ts = generalize env (apply_typ s1 t1) in
-      let () = print_endline ("generalize " ^ (string_of_typ t1) ^ " ==> " ^ (string_of_typ_scheme ts)) in
       let env' = Env.extend (apply_env s1 env) x ts in
       infer e2 env'
   | If _ -> failwith "TODO3"
