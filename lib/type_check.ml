@@ -125,7 +125,8 @@ let rec unify (t1 : typ) (t2 : typ) : subst = match t1, t2 with
   | t, TVar x when not_contains x t -> [(x, t)]
   | TCon (TClosure, [lhs1; rhs1]), TCon (TClosure, [lhs2; rhs2]) ->
       let s1 = unify lhs1 lhs2 in
-      let s2 = unify rhs1 rhs2 in
+      (* type variable substitution must happen simultaneously *)
+      let s2 = unify (apply_typ s1 rhs1) (apply_typ s1 rhs2) in
       compose s1 s2
   | _ -> failwith "unification failed"
 

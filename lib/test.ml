@@ -10,7 +10,6 @@ let test_eval src expected =
   else
     failwith ("failed - got " ^ (Ast.string_of_expr result))
 
-(*
 let test_infer src expected =
   let lexbuf = Lexing.from_string src in
   let ast = Parser.program Lexer.read lexbuf in
@@ -21,7 +20,6 @@ let test_infer src expected =
     print_endline ("test_infer OK " ^ (string_of_typ result))
   else
     failwith ("failed - got " ^ (string_of_typ result))
-*)
 
 let test_unify (t1 : typ) (t2 : typ) (expected : subst) =
   let result = unify t1 t2 in
@@ -35,7 +33,7 @@ let test_unify_property (t1 : typ) (t2 : typ) =
   let t1' = apply_typ s t1 in
   let t2' = apply_typ s t2 in
   if t1' = t2' then
-    print_endline ("test_unify OK " ^ (string_of_typ t1) ^ " " ^ (string_of_typ t2))
+    print_endline ("test_unify_property OK " ^ (string_of_typ t1) ^ " " ^ (string_of_typ t2))
   else
     failwith ("failed - got "
     ^ (string_of_typ t1)
@@ -70,6 +68,8 @@ let test_compose_property (t1 : typ) (s1 : subst) (s2 : subst) : unit =
     ^ string_of_subst s3
     )
 
+(* test eval function *)
+
 let () = test_eval "1" (Int 1)
 let () = test_eval "0 * 1 + 2 * 4" (Int 8)
 let () = test_eval "let x = 1 in x" (Int 1)
@@ -93,26 +93,21 @@ let () = test_eval "let identity = x -> x in let x = 2 in identity x" (Int 2)
 let () = test_eval "let f = x -> y -> x + y in f 1 2" (Int 3)
 let () = test_eval "let add1 = x -> (x + 1) in let compose-twice = (f -> x -> f (f x)) in compose-twice add1 1" (Int 3)
 
-(*
-let () = test_infer "1" TInt
-let () = test_infer "x -> x" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
-let () = test_infer "let id = x -> x in id" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
-*)
-
-let () = test_unify TInt TInt []
-(*
-let () = test_unify
-  (TCon (TClosure, [TVar "$1"; TVar "$1"]))
-  (TCon (TClosure, [TInt; TVar "$2"]))
-  [("$1", TInt)]
-
-let () = test_infer "let id = x -> x in id 1" TInt
-*)
+(* test compose function *)
 
 let () = test_compose_property
   (TCon (TClosure, [TVar "$1"; TVar "$2"]))
   [("$2", TCon (TClosure, [TVar "$3"; TInt]))]
   [("$1", TBool); ("$3", TInt)]
+
+(* test unify function (uses compose) *)
+
+let () = test_unify TBool TBool []
+let () = test_unify TInt TInt []
+
+let () = test_unify_property
+  (TCon (TClosure, [TInt; TVar "$1"]))
+  (TCon (TClosure, [TInt; TBool]))
 
 let () = test_unify_property
   (TCon (TClosure, [TInt; TVar "$1"]))
@@ -120,4 +115,17 @@ let () = test_unify_property
 
 let () = test_unify_property
   (TCon (TClosure, [TVar "$1"; TVar "$1"]))
+  (TCon (TClosure, [TInt; TInt]))
+
+let () = test_unify_property
+  (TCon (TClosure, [TVar "$1"; TVar "$1"]))
   (TCon (TClosure, [TInt; TVar "$2"]))
+
+(* test infer function (uses unify) *)
+
+let () = test_infer "let id = x -> x in id 1" TInt
+let () = test_infer "1" TInt
+let () = test_infer "x -> x" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
+let () = test_infer "let id = x -> x in id" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
+let () = test_infer "let id = x -> x in id id" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
+let () = test_infer "let id = x -> x in (id id) (id id)" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
