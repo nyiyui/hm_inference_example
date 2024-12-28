@@ -15,6 +15,8 @@ rule read =
   | "true" { TRUE }
   | "false" { FALSE }
   | "not" { NOT }
+  | "&&" { AND }
+  | "||" { OR }
   | "-" { MINUS }
   | "+" { PLUS }
   | "*" { TIMES }

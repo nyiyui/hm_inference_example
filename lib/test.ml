@@ -135,4 +135,10 @@ let () = test_infer "1" TInt
 let () = test_infer "let x = 1 in x" TInt
 let () = test_infer "let x = 1 in -x" TInt
 let () = test_infer "let negate = x -> -x in negate" (TCon (TClosure, [TInt; TInt]))
+let () = test_infer "let id = x -> 1 * x in id" (TCon (TClosure, [TInt; TInt]))
+let () = test_infer "let id = x -> 0 + x in id" (TCon (TClosure, [TInt; TInt]))
 let () = test_infer "let flip = x -> not x in flip" (TCon (TClosure, [TBool; TBool]))
+let () = test_infer "let id = x -> true && x in id" (TCon (TClosure, [TBool; TBool]))
+let () = test_infer "let id = x -> false || x in id" (TCon (TClosure, [TBool; TBool]))
+let () = test_infer "true && false" TBool
+let () = test_infer "true || false" TBool

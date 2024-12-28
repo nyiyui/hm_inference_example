@@ -96,7 +96,7 @@ module Env = struct
   (** [lookup env x] returns the type scheme bound to [x] in [env]. *)
   let lookup env x =
     try List.assoc x env
-    with Not_found -> failwith "Unbound variable"
+    with Not_found -> failwith ("unbound variable " ^ x)
 
   (** [extend env x ty] returns [env] with a binding from [x] to [ty]. *)
   let extend env x ty =
@@ -135,7 +135,19 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
   let unary_expect s t = function
     | TVar x -> let s' = [(x, t)] in (t, compose s s')
     | t' when t' = t -> (t', s)
-    | _ -> failwith "not must be on bool" in
+    | _ -> failwith ("must be " ^ string_of_typ t) in
+  let binary_expect t e1 e2 env =
+    let t1, s1 = infer e1 env in
+    let t2, s2 = infer e2 env in
+    let s3 = compose s1 s2 in
+    match t1, t2 with
+    | TVar x, TVar y when x = y -> let s' = [(x, t)] in (t, compose s3 s')
+    | TVar x, TVar y -> let s' = [(x, t); (y, t)] in (t, compose s3 s')
+    | TVar x, t2' when t2' = t -> let s' = [(x, t)] in (t, compose s3 s')
+    | t1', TVar y when t1' = t -> let s' = [(y, t)] in (t, compose s3 s')
+    | t1', t2' when t1' = t2' && t2' = t -> (t, s3)
+    | _ -> failwith ("both sides must be " ^ string_of_typ t ^ " but lhs is " ^ string_of_typ t1 ^ " and rhs is " ^ string_of_typ t2)
+    in
   match e with
   | Var x ->
       let t = Env.lookup env x in
@@ -147,8 +159,13 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
       let t, s = infer e env in
       (match op with
       | Not -> unary_expect s TBool t
-      | Neg-> unary_expect s TInt t)
-  | OpBinary _ -> failwith "TODO2"
+      | Neg -> unary_expect s TInt t)
+  | OpBinary (op, e1, e2) ->
+      (match op with
+      | Add -> binary_expect TInt e1 e2 env
+      | Mul -> binary_expect TInt e1 e2 env
+      | And -> binary_expect TBool e1 e2 env
+      | Or  -> binary_expect TBool e1 e2 env)
   | Closure (x, e) ->
       let a = TVar (gensym ()) in
       let env' = Env.extend env x ([], a) in
