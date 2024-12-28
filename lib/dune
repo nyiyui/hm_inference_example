@@ -1,6 +1,6 @@
 (library
  (name small_functional_language)
- (modules ast eval lexer parser type_check))
+ (modules ast eval lexer parser type_check compiler))
 
 (menhir
  (modules parser))
