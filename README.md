@@ -1,1 +1,1 @@
-cf. https://scrapbox.io/ayarin/small-functional-language
+cf. [cosense](https://scrapbox.io/ayarin/small_functional_language)
