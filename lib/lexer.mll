@@ -14,7 +14,7 @@ rule read =
   | space { read lexbuf }
   | "true" { TRUE }
   | "false" { FALSE }
-  | "not" { NOT }
+  | "!" { NOT }
   | "&&" { AND }
   | "||" { OR }
   | "-" { MINUS }

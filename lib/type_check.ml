@@ -162,6 +162,12 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
       | Neg -> unary_expect s TInt t)
   | OpBinary (op, e1, e2) ->
       (match op with
+      | Equal ->
+        let t1, s1 = infer e1 env in
+        let t2, s2 = infer e2 env in
+        let s3 = unify t1 t2 in
+        let s4 = compose (compose s1 s2) s3 in
+        (TBool, s4)
       | Add -> binary_expect TInt e1 e2 env
       | Mul -> binary_expect TInt e1 e2 env
       | And -> binary_expect TBool e1 e2 env

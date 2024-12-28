@@ -51,6 +51,7 @@ expr:
 expr_op:
   | NOT; e = expr_op { OpUnary (Not, e) }
   | MINUS; e = expr_op { OpUnary (Neg, e) }
+  | e1 = expr_op; EQUALS; e2 = expr_op { OpBinary (Equal, e1, e2) }
   | e1 = expr_op; PLUS; e2 = expr_op { OpBinary (Add, e1, e2) }
   | e1 = expr_op; TIMES; e2 = expr_op { OpBinary (Mul, e1, e2) }
   | e1 = expr_op; AND; e2 = expr_op { OpBinary (And, e1, e2) }

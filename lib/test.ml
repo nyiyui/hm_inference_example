@@ -128,16 +128,19 @@ let () = test_infer "x -> x" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
 let () = test_infer "let id = x -> x in id" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
 let () = test_infer "let id = x -> x in id id" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
 let () = test_infer "let id = x -> x in (id id) (id id)" (TCon (TClosure, [TVar("$1"); TVar("$1")]))
+let () = test_infer "let f = x -> x = 1 in f" (TCon (TClosure, [TInt; TBool]))
+let () = test_infer "let f = x -> x = true in f" (TCon (TClosure, [TBool; TBool]))
+let () = test_infer "let id = x -> x in let f = x -> x = id in f" (TCon (TClosure, [(TCon (TClosure, [TVar("$1"); TVar("$1")])); TBool]))
 
 let () = test_infer "true" TBool
-let () = test_infer "not true" TBool
+let () = test_infer "!true" TBool
 let () = test_infer "1" TInt
 let () = test_infer "let x = 1 in x" TInt
 let () = test_infer "let x = 1 in -x" TInt
 let () = test_infer "let negate = x -> -x in negate" (TCon (TClosure, [TInt; TInt]))
 let () = test_infer "let id = x -> 1 * x in id" (TCon (TClosure, [TInt; TInt]))
 let () = test_infer "let id = x -> 0 + x in id" (TCon (TClosure, [TInt; TInt]))
-let () = test_infer "let flip = x -> not x in flip" (TCon (TClosure, [TBool; TBool]))
+let () = test_infer "let flip = x -> !x in flip" (TCon (TClosure, [TBool; TBool]))
 let () = test_infer "let id = x -> true && x in id" (TCon (TClosure, [TBool; TBool]))
 let () = test_infer "let id = x -> false || x in id" (TCon (TClosure, [TBool; TBool]))
 let () = test_infer "true && false" TBool

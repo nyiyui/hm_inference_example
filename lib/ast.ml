@@ -3,6 +3,7 @@ type unaryOp =
   | Neg
 
 type binaryOp =
+  | Equal
   | Add
   | Mul
   | And
@@ -29,6 +30,7 @@ let string_of_expr (e : string expr) : string =
         | Not -> "not " ^ string_of_expr' e
         | Neg -> "-" ^ string_of_expr' e)
     | OpBinary (op, e1, e2) -> (match op with
+        | Equal -> string_of_expr' e1 ^ " = " ^ string_of_expr' e2
         | Add -> string_of_expr' e1 ^ " + " ^ string_of_expr' e2
         | Mul -> string_of_expr' e1 ^ " * " ^ string_of_expr' e2
         | And -> string_of_expr' e1 ^ " && " ^ string_of_expr' e2
