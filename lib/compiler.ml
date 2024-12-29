@@ -40,8 +40,9 @@ type program = data * text
 let inst_length ((_, is) : program) = List.length is
 
 (** [merge p1 p2] returns a new [program] with [p1] running first, then [p2]. *)
-let merge (p1 : program) (p2 : program) : program =
-  let _ = p1, p2 in failwith "TODO"
+let merge (data1, text1 : program) (data2, text2 : program) : program =
+  (* TODO: implement renaming datum indices *)
+  data1 @ data2, text1 @ text2
 
 let inst_of_unary_op = function
   | Ast.Not -> UnaryNot
@@ -86,3 +87,23 @@ let rec compile (env : Env.t) (stack_index : int) (e : string Ast.expr) : progra
     let p3 = compile env (stack_index + 1) e3 in
     let pJump = [], [JumpOnFalse (inst_length p2 + 1)] in
     merge (merge (merge p1 pJump) p2) p3
+
+let string_of_inst = function
+  | LiteralInt i -> string_of_int i
+  | LiteralBool b -> string_of_bool b
+  | LoadRelative i -> "load_relative " ^ string_of_int i
+  | UnaryNot -> "not"
+  | UnaryNeg -> "neg"
+  | BinaryEqual -> "equal"
+  | BinaryAdd -> "add"
+  | BinaryMul -> "mul"
+  | BinaryAnd -> "and"
+  | BinaryOr -> "or"
+  | BinaryApply -> "apply"
+  | JumpOnFalse i -> "jump_on_false " ^ string_of_int i
+
+let string_of_program ((ds, is) : program) : string =
+  let string_of_datum d = d in
+  let string_of_data ds = String.concat " " (List.map string_of_datum ds) in
+  let string_of_text is = String.concat "\n" (List.map string_of_inst is) in
+  "data:\n" ^ string_of_data ds ^ "\ntext:\n" ^ string_of_text is

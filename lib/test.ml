@@ -1,14 +1,27 @@
 open Small_functional_language
 open Type_check
 
+let test_vm src expected =
+  let lexbuf = Lexing.from_string src in
+  let ast = Parser.program Lexer.read lexbuf in
+  let prog = Compiler.compile Compiler.Env.empty 0 ast in
+  let () = print_endline ("program! " ^ Compiler.string_of_program prog) in
+  let s = Vm.run prog [] in
+  let result = List.hd s in
+  if result = expected then
+    print_endline ("test_vm OK " ^ src)
+  else
+    failwith ("failed - got " ^ (Ast.string_of_expr result))
+
 let test_eval src expected =
   let lexbuf = Lexing.from_string src in
   let ast = Parser.program Lexer.read lexbuf in
   let result = Eval.eval ast in
-  if result = expected then
+  let () = if result = expected then
     print_endline ("test_eval OK " ^ src)
   else
-    failwith ("failed - got " ^ (Ast.string_of_expr result))
+    failwith ("failed - got " ^ (Ast.string_of_expr result)) in
+  test_vm src expected
 
 let test_infer src expected =
   let lexbuf = Lexing.from_string src in
