@@ -6,7 +6,7 @@ let test_vm src expected =
   let ast = Parser.program Lexer.read lexbuf in
   let prog = Compiler.compile Compiler.Env.empty 0 ast in
   let () = print_endline ("program! " ^ Compiler.string_of_program prog) in
-  let s = Vm.run prog [] in
+  let s, _ = Vm.run prog [] [] in
   let result = List.hd s in
   if result = expected then
     print_endline ("test_vm OK " ^ src)

@@ -5,7 +5,8 @@ type data = datum list
 type inst =
   | LiteralInt of int
   | LiteralBool of bool
-  | LoadRelative of int
+  | LocalLoad of int
+  | LocalStore of int
   | UnaryNot
   | UnaryNeg
   | BinaryEqual
@@ -55,43 +56,42 @@ let inst_of_binary_op = function
   | Ast.And -> BinaryAnd
   | Ast.Or -> BinaryOr
 
-let rec compile (env : Env.t) (stack_index : int) (e : string Ast.expr) : program = match e with
-  | Var x ->
-    let i = Env.lookup env x in
-    [], [LoadRelative (stack_index-i)]
+let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program = match e with
+  | Var x -> [], [LocalLoad (Env.lookup env x)]
   | Int v -> [], [LiteralInt v]
   | Bool v -> [], [LiteralBool v]
   | OpUnary (op, e1) ->
-    let p1 = compile env stack_index e1 in
+    let p1 = compile env local_from e1 in
     let p2 = [], [inst_of_unary_op op] in
     merge p1 p2
   | OpBinary (op, e1, e2) ->
-    let p1 = compile env stack_index e1 in
-    let p2 = compile env (stack_index + 1) e2 in
+    let p1 = compile env local_from e1 in
+    let p2 = compile env local_from e2 in
     let p3 = [], [inst_of_binary_op op] in
     merge (merge p1 p2) p3
-  | Closure _ -> failwith "TODO"
+  | Closure _ -> failwith "TODO closure"
   | Application (e1, e2) ->
-    let p1 = compile env stack_index e1 in
-    let p2 = compile env (stack_index + 1) e2 in
+    let p1 = compile env local_from e1 in
+    let p2 = compile env local_from e2 in
     let p3 = [], [BinaryApply] in
     merge (merge p1 p2) p3
   | Let (x, e1, e2) ->
-    let p1 = compile env stack_index e1 in
-    let env' = Env.extend env x stack_index in
-    let p2 = compile env' (stack_index + 1) e2 in
+    let p1 = merge (compile env local_from e1) ([], [LocalStore local_from]) in
+    let env' = Env.extend env x local_from in
+    let p2 = compile env' (local_from + 1) e2 in
     merge p1 p2
   | If (e1, e2, e3) ->
-    let p1 = compile env stack_index e1 in
-    let p2 = compile env (stack_index + 1) e2 in
-    let p3 = compile env (stack_index + 1) e3 in
+    let p1 = compile env local_from e1 in
+    let p2 = compile env local_from e2 in
+    let p3 = compile env local_from e3 in
     let pJump = [], [JumpOnFalse (inst_length p2 + 1)] in
     merge (merge (merge p1 pJump) p2) p3
 
 let string_of_inst = function
   | LiteralInt i -> string_of_int i
   | LiteralBool b -> string_of_bool b
-  | LoadRelative i -> "load_relative " ^ string_of_int i
+  | LocalLoad i -> "local_load " ^ string_of_int i
+  | LocalStore i -> "local_store " ^ string_of_int i
   | UnaryNot -> "not"
   | UnaryNeg -> "neg"
   | BinaryEqual -> "equal"
