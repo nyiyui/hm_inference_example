@@ -1,12 +1,9 @@
-type datum = string
-
-type data = datum list
-
 type inst =
   | LiteralInt of int
   | LiteralBool of bool
   | LocalLoad of int
   | LocalStore of int
+  | ClosureLoad of int * int (* [ClosureLoad i n] instantiates a new closure from data index [i] and with [n] captures from the stack *)
   | UnaryNot
   | UnaryNeg
   | BinaryEqual
@@ -18,6 +15,12 @@ type inst =
   | JumpOnFalse of int (* move program counter by the int (do not autoincrement, so JumpOnFalse 1 is a no-op) *)
 
 type text = inst list
+
+type 'i value =
+  | Expr of 'i Ast.expr
+  | Closure of ('i value list) * program (* TODO: move data into top-level program while compiling *)
+and data = string value list
+and program = data * text
 
 module Env = struct
   (** [t] is the type of an environment. *)
@@ -34,16 +37,23 @@ module Env = struct
   (** [extend env x i] returns [env] with a binding from [x] to [i]. *)
   let extend env x i =
     (x, i) :: env
-end
 
-type program = data * text
+  let string_of_env env = (List.map (fun (x, i) -> x ^ ":" ^ (string_of_int i)) env |> String.concat " ")
+end
 
 let inst_length ((_, is) : program) = List.length is
 
+let offset_datum_indices (t : text) i =
+  let offset i s = match s with
+    | ClosureLoad (j, n) -> ClosureLoad (j + i, n)
+    | _ -> s in
+  if i = 0 then t else List.map (offset i) t
+
 (** [merge p1 p2] returns a new [program] with [p1] running first, then [p2]. *)
 let merge (data1, text1 : program) (data2, text2 : program) : program =
-  (* TODO: implement renaming datum indices *)
-  data1 @ data2, text1 @ text2
+  let l1 = List.length data1 in
+  let text2' = offset_datum_indices text2 l1 in
+  data1 @ data2, text1 @ text2'
 
 let inst_of_unary_op = function
   | Ast.Not -> UnaryNot
@@ -56,8 +66,21 @@ let inst_of_binary_op = function
   | Ast.And -> BinaryAnd
   | Ast.Or -> BinaryOr
 
+let rec vars_in (e : string Ast.expr) : string list = match e with
+  | Var x -> [x]
+  | Int _ | Bool _ -> []
+  | OpUnary (_, e1) -> vars_in e1
+  | OpBinary (_, e1, e2) -> (vars_in e1) @ (vars_in e2)
+  | Closure (x, e) -> List.filter (fun y -> not (y = x)) (vars_in e)
+  | Application (e1, e2) -> (vars_in e1) @ (vars_in e2)
+  | Let (x, e1, e2) -> (vars_in e1) @ (vars_in e2 |> (List.filter (fun y -> not (y = x))))
+  | If (e1, e2, e3) -> (vars_in e1) @ (vars_in e2) @ (vars_in e3)
+
 let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program = match e with
-  | Var x -> [], [LocalLoad (Env.lookup env x)]
+  | Var x ->
+    let () = print_endline ("lookup " ^ x) in
+    let () = print_endline ("lookup " ^ x ^ " becomes " ^ string_of_int (Env.lookup env x)) in
+    [], [LocalLoad (Env.lookup env x)]
   | Int v -> [], [LiteralInt v]
   | Bool v -> [], [LiteralBool v]
   | OpUnary (op, e1) ->
@@ -69,7 +92,18 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     let p2 = compile env local_from e2 in
     let p3 = [], [inst_of_binary_op op] in
     merge (merge p1 p2) p3
-  | Closure _ -> failwith "TODO closure"
+  | Closure (x, e) ->
+    let captures = vars_in e |> List.filter (fun y -> not (y = x)) in
+    let () = print_endline ("x = " ^ x) in
+    let () = print_endline ("e = " ^ (Ast.string_of_expr e)) in
+    let () = print_endline ("captures: " ^ String.concat " " captures) in
+    let capture_text = List.map (fun y -> LocalLoad (Env.lookup env y)) captures in
+    let add_indices = List.mapi (fun i y -> (y, i + 1)) in
+    let env2 = List.fold_left (fun env (y, i) -> Env.extend env y i) (Env.extend [] x 0) (add_indices captures) in
+    let () = print_endline ("env2 = " ^ (Env.string_of_env env2)) in
+    (* indices are: 0 = argument, 1... = captures, then locals from e.g. let *)
+    let p2 = compile env2 1 e in (* closure is given a new stack and local, local at index 0 is argument *)
+    [Closure ([], p2)], capture_text @ [ClosureLoad (0, List.length captures)]
   | Application (e1, e2) ->
     let p1 = compile env local_from e1 in
     let p2 = compile env local_from e2 in
@@ -90,8 +124,9 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
 let string_of_inst = function
   | LiteralInt i -> string_of_int i
   | LiteralBool b -> string_of_bool b
-  | LocalLoad i -> "local_load " ^ string_of_int i
-  | LocalStore i -> "local_store " ^ string_of_int i
+  | LocalLoad i -> "local_load-" ^ string_of_int i
+  | LocalStore i -> "local_store-" ^ string_of_int i
+  | ClosureLoad (i, n) -> "closure_load-" ^ string_of_int i ^ "-" ^ string_of_int n
   | UnaryNot -> "not"
   | UnaryNeg -> "neg"
   | BinaryEqual -> "equal"
@@ -100,10 +135,12 @@ let string_of_inst = function
   | BinaryAnd -> "and"
   | BinaryOr -> "or"
   | BinaryApply -> "apply"
-  | JumpOnFalse i -> "jump_on_false " ^ string_of_int i
+  | JumpOnFalse i -> "jump_on_false-" ^ string_of_int i
 
-let string_of_program ((ds, is) : program) : string =
-  let string_of_datum d = d in
-  let string_of_data ds = String.concat " " (List.map string_of_datum ds) in
-  let string_of_text is = String.concat "\n" (List.map string_of_inst is) in
-  "data:\n" ^ string_of_data ds ^ "\ntext:\n" ^ string_of_text is
+let rec string_of_program ((ds, is) : program) : string =
+  let string_of_data ds = String.concat " " (List.map string_of_value ds) in
+  let string_of_text is = String.concat " " (List.map string_of_inst is) in
+  "data:" ^ string_of_data ds ^ " text:" ^ string_of_text is
+and string_of_value = function
+  | Expr e -> Ast.string_of_expr e
+  | Closure (vars, c) -> "[" ^ (String.concat " " (List.map string_of_value vars)) ^ "]/{" ^ string_of_program c ^ "}"

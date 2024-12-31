@@ -11,17 +11,20 @@ let test_vm src expected =
   if result = expected then
     print_endline ("test_vm OK " ^ src)
   else
-    failwith ("failed - got " ^ (Ast.string_of_expr result))
+    failwith ("failed - got " ^ (Vm.string_of_value result))
 
-let test_eval src expected =
+let test_eval_only src expected =
   let lexbuf = Lexing.from_string src in
   let ast = Parser.program Lexer.read lexbuf in
   let result = Eval.eval ast in
-  let () = if result = expected then
+  if result = expected then
     print_endline ("test_eval OK " ^ src)
   else
-    failwith ("failed - got " ^ (Ast.string_of_expr result)) in
-  test_vm src expected
+    failwith ("failed - got " ^ (Ast.string_of_expr result))
+
+let test_eval src expected =
+  let () = test_eval_only src expected in
+  test_vm src (Compiler.Expr expected)
 
 let test_infer src expected =
   let lexbuf = Lexing.from_string src in
@@ -81,8 +84,16 @@ let test_compose_property (t1 : typ) (s1 : subst) (s2 : subst) : unit =
     ^ string_of_subst s3
     )
 
-(* test eval function *)
+let test_vars_in e (expected : string list) =
+  let got = Compiler.vars_in e in
+  if got = expected then
+    print_endline "test_vars_in OK"
+  else
+    failwith ("test_vars_in - got " ^ (String.concat " " got))
 
+let () = test_vars_in (Closure ("x", Var "x")) []
+
+(* test eval function *)
 let () = test_eval "1" (Int 1)
 let () = test_eval "0 * 1 + 2 * 4" (Int 8)
 let () = test_eval "let x = 1 in x" (Int 1)
@@ -95,7 +106,7 @@ let () = test_eval "let x = 1 in x + (let y = 2 in y + x)" (Int 4)
 (* 1 + 2 + 1 *)
 (* 4 *)
 
-let () = test_eval "x -> x" (Closure ("x", Var "x"))
+let () = test_eval_only "x -> x" (Closure ("x", Var "x"))
 let () = test_eval "let first = x -> y -> x in first 1 2" (Int 1)
  let () = test_eval "let second = x -> y -> y in second 1 2" (Int 2)
 let () = test_eval "(x -> x) 1" (Int 1)
