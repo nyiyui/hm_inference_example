@@ -36,9 +36,12 @@ let rec step (data, text : program) (s : 'i stack) (l : 'i local) : program * 'i
   | LiteralBool v -> (p', [Compiler.Expr (Bool v)] @ s, l)
   | LocalLoad i ->
 (*     let () = print_endline ("from " ^ string_of_int i ^ " loaded " ^ string_of_value (List.nth l i)) in *)
+    let () = print_endline ("load local from " ^ string_of_int i) in
     (p', [List.nth l i] @ s, l)
   | LocalStore i -> (p', List.tl s, store_at l i (List.hd s))
-  | ClosureLoad (i, n_captures) -> (match List.nth data i with
+  | ClosureLoad (i, n_captures) ->
+    let () = print_endline ("load data? from " ^ string_of_int i) in
+  (match List.nth data i with
     | Closure (_, p2) ->
       let vars, s' = take_first n_captures s in
       (p', [Compiler.Closure (vars, p2)] @ s', l)
@@ -47,12 +50,12 @@ let rec step (data, text : program) (s : 'i stack) (l : 'i local) : program * 'i
   | BinaryAdd -> binary_int p' s ( + ) l
   | BinaryMul -> binary_int p' s ( * ) l
   | BinaryApply -> (match s with
-    | arg::(Compiler.Closure (vars, p2))::_ ->
+    | arg::(Compiler.Closure (vars, t2))::_ ->
       let fn_stack = arg::vars in
-      let () = print_endline ("fn     is " ^ Compiler.string_of_program p2) in
+      let () = print_endline ("fn     is " ^ Compiler.string_of_text t2) in
       let () = print_endline ("fn_s   is " ^ (List.map string_of_value fn_stack |> String.concat " ")) in
       let () = print_endline ("arg    is " ^ string_of_value arg) in
-      let s2, _ = run p2 [] fn_stack in
+      let s2, _ = run (data, t2) [] fn_stack in
       let retval = List.hd s2 in
       let () = print_endline ("retval is " ^ string_of_value retval) in
       (p', [retval] @ s, l)

@@ -18,9 +18,12 @@ type text = inst list
 
 type 'i value =
   | Expr of 'i Ast.expr
-  | Closure of ('i value list) * program (* TODO: move data into top-level program while compiling *)
-and data = string value list
-and program = data * text
+  | Closure of ('i value list) * text
+  (* [Closure (captures, t)] is a closure that runs [t]. [captures] msut be an empty list during compilation, before runtime. *)
+
+type data = string value list
+
+type program = data * text
 
 module Env = struct
   (** [t] is the type of an environment. *)
@@ -49,11 +52,21 @@ let offset_datum_indices (t : text) i =
     | _ -> s in
   if i = 0 then t else List.map (offset i) t
 
+let offset_data_indices (d : data) i =
+  let offset i s = match s with
+    | Closure (captures, t) ->
+      if captures = []
+      then Closure (captures, offset_datum_indices t i)
+      else failwith "captures must be empty list"
+    | _ -> s in
+  if i = 0 then d else List.map (offset i) d
+
 (** [merge p1 p2] returns a new [program] with [p1] running first, then [p2]. *)
 let merge (data1, text1 : program) (data2, text2 : program) : program =
   let l1 = List.length data1 in
   let text2' = offset_datum_indices text2 l1 in
-  data1 @ data2, text1 @ text2'
+  let data2' = offset_data_indices data2 l1 in
+  data1 @ data2', text1 @ text2'
 
 let inst_of_unary_op = function
   | Ast.Not -> UnaryNot
@@ -78,7 +91,6 @@ let rec vars_in (e : string Ast.expr) : string list = match e with
 
 let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program = match e with
   | Var x ->
-    let () = print_endline ("lookup " ^ x) in
     let () = print_endline ("lookup " ^ x ^ " becomes " ^ string_of_int (Env.lookup env x)) in
     [], [LocalLoad (Env.lookup env x)]
   | Int v -> [], [LiteralInt v]
@@ -102,8 +114,8 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     let env2 = List.fold_left (fun env (y, i) -> Env.extend env y i) (Env.extend [] x 0) (add_indices captures) in
     let () = print_endline ("env2 = " ^ (Env.string_of_env env2)) in
     (* indices are: 0 = argument, 1... = captures, then locals from e.g. let *)
-    let p2 = compile env2 1 e in (* closure is given a new stack and local, local at index 0 is argument *)
-    [Closure ([], p2)], capture_text @ [ClosureLoad (0, List.length captures)]
+    let (data2, text2) = compile env2 1 e in (* closure is given a new stack and local, local at index 0 is argument *)
+    data2 @ [Closure ([], text2)], capture_text @ [ClosureLoad (List.length data2, List.length captures)]
   | Application (e1, e2) ->
     let p1 = compile env local_from e1 in
     let p2 = compile env local_from e2 in
@@ -139,8 +151,8 @@ let string_of_inst = function
 
 let rec string_of_program ((ds, is) : program) : string =
   let string_of_data ds = String.concat " " (List.map string_of_value ds) in
-  let string_of_text is = String.concat " " (List.map string_of_inst is) in
-  "data:" ^ string_of_data ds ^ " text:" ^ string_of_text is
+  "{{data: " ^ string_of_data ds ^ " }}*{{text: " ^ string_of_text is ^ " }}"
+and string_of_text is = String.concat " " (List.map string_of_inst is)
 and string_of_value = function
   | Expr e -> Ast.string_of_expr e
-  | Closure (vars, c) -> "[" ^ (String.concat " " (List.map string_of_value vars)) ^ "]/{" ^ string_of_program c ^ "}"
+  | Closure (vars, c) -> "[" ^ (String.concat " " (List.map string_of_value vars)) ^ "]/{" ^ string_of_text c ^ "}"
