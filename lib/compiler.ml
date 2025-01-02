@@ -106,6 +106,7 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     merge (merge p1 p2) p3
   | Closure (x, e) ->
     let captures = vars_in e |> List.filter (fun y -> not (y = x)) in
+    (* TODO: deduplicate captures *)
     let () = print_endline ("x = " ^ x) in
     let () = print_endline ("e = " ^ (Ast.string_of_expr e)) in
     let () = print_endline ("captures: " ^ String.concat " " captures) in
@@ -134,8 +135,8 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     merge (merge (merge p1 pJump) p2) p3
 
 let string_of_inst = function
-  | LiteralInt i -> string_of_int i
-  | LiteralBool b -> string_of_bool b
+  | LiteralInt i -> "literal-" ^ string_of_int i
+  | LiteralBool b -> "literal-" ^ string_of_bool b
   | LocalLoad i -> "local_load-" ^ string_of_int i
   | LocalStore i -> "local_store-" ^ string_of_int i
   | ClosureLoad (i, n) -> "closure_load-" ^ string_of_int i ^ "-" ^ string_of_int n
