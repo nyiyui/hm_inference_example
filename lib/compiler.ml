@@ -85,14 +85,15 @@ let rec vars_in (e : string Ast.expr) : string list =
   | Closure (x, e) -> List.filter (fun y -> not (y = x)) (vars_in e)
   | Application (e1, e2) -> vars_in e1 @ vars_in e2 |> List.sort_uniq compare
   | Let (x, e1, e2) ->
-      vars_in e1 @ (vars_in e2 |> List.filter (fun y -> not (y = x))) |> List.sort_uniq compare
-  | If (e1, e2, e3) -> vars_in e1 @ vars_in e2 @ vars_in e3 |> List.sort_uniq compare
+      vars_in e1 @ (vars_in e2 |> List.filter (fun y -> not (y = x)))
+      |> List.sort_uniq compare
+  | If (e1, e2, e3) ->
+      vars_in e1 @ vars_in e2 @ vars_in e3 |> List.sort_uniq compare
 
 let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     =
   match e with
-  | Var x ->
-      ([], [ LocalLoad (Env.lookup env x) ])
+  | Var x -> ([], [ LocalLoad (Env.lookup env x) ])
   | Int v -> ([], [ LiteralInt v ])
   | Bool v -> ([], [ LiteralBool v ])
   | OpUnary (op, e1) ->

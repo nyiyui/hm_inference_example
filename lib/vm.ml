@@ -49,8 +49,7 @@ let rec step ((data, text) : program) (s : 'i stack) (l : 'i local) :
   match current with
   | LiteralInt v -> (p', [ Compiler.Expr (Int v) ] @ s, l)
   | LiteralBool v -> (p', [ Compiler.Expr (Bool v) ] @ s, l)
-  | LocalLoad i ->
-      (p', [ List.nth l i ] @ s, l)
+  | LocalLoad i -> (p', [ List.nth l i ] @ s, l)
   | LocalStore i -> (p', List.tl s, store_at l i (List.hd s))
   | ClosureLoad (i, n_captures) -> (
       match List.nth data i with
