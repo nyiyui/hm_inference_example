@@ -75,17 +75,18 @@ let inst_of_binary_op = function
   | Ast.And -> BinaryAnd
   | Ast.Or -> BinaryOr
 
+(** [vars_in e] returns the variables used in [e], with no duplicates. *)
 let rec vars_in (e : string Ast.expr) : string list =
   match e with
   | Var x -> [ x ]
   | Int _ | Bool _ -> []
   | OpUnary (_, e1) -> vars_in e1
-  | OpBinary (_, e1, e2) -> vars_in e1 @ vars_in e2
+  | OpBinary (_, e1, e2) -> vars_in e1 @ vars_in e2 |> List.sort_uniq compare
   | Closure (x, e) -> List.filter (fun y -> not (y = x)) (vars_in e)
-  | Application (e1, e2) -> vars_in e1 @ vars_in e2
+  | Application (e1, e2) -> vars_in e1 @ vars_in e2 |> List.sort_uniq compare
   | Let (x, e1, e2) ->
-      vars_in e1 @ (vars_in e2 |> List.filter (fun y -> not (y = x)))
-  | If (e1, e2, e3) -> vars_in e1 @ vars_in e2 @ vars_in e3
+      vars_in e1 @ (vars_in e2 |> List.filter (fun y -> not (y = x))) |> List.sort_uniq compare
+  | If (e1, e2, e3) -> vars_in e1 @ vars_in e2 @ vars_in e3 |> List.sort_uniq compare
 
 let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     =
@@ -109,7 +110,6 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
       merge (merge p1 p2) p3
   | Closure (x, e) ->
       let captures = vars_in e |> List.filter (fun y -> not (y = x)) in
-      (* TODO: deduplicate captures *)
       let () = print_endline ("x = " ^ x) in
       let () = print_endline ("e = " ^ Ast.string_of_expr e) in
       let () = print_endline ("captures: " ^ String.concat " " captures) in
