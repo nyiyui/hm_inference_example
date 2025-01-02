@@ -35,4 +35,5 @@ jobs:
       - uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: 5
+      - run: opam install . --deps-only --with-test
       - uses: ocaml/setup-ocaml/lint-fmt@v3
