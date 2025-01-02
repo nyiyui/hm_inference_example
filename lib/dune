@@ -8,6 +8,6 @@
 (ocamllex lexer)
 
 (test
-  (name test)
-  (modules test)
-  (libraries small_functional_language))
+ (name test)
+ (modules test)
+ (libraries small_functional_language))
