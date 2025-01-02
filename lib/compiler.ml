@@ -92,10 +92,6 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
     =
   match e with
   | Var x ->
-      let () =
-        print_endline
-          ("lookup " ^ x ^ " becomes " ^ string_of_int (Env.lookup env x))
-      in
       ([], [ LocalLoad (Env.lookup env x) ])
   | Int v -> ([], [ LiteralInt v ])
   | Bool v -> ([], [ LiteralBool v ])
@@ -110,9 +106,6 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
       merge (merge p1 p2) p3
   | Closure (x, e) ->
       let captures = vars_in e |> List.filter (fun y -> not (y = x)) in
-      let () = print_endline ("x = " ^ x) in
-      let () = print_endline ("e = " ^ Ast.string_of_expr e) in
-      let () = print_endline ("captures: " ^ String.concat " " captures) in
       let capture_text =
         List.map (fun y -> LocalLoad (Env.lookup env y)) captures
       in
@@ -122,7 +115,6 @@ let rec compile (env : Env.t) (local_from : int) (e : string Ast.expr) : program
           (fun env (y, i) -> Env.extend env y i)
           (Env.extend [] x 0) (add_indices captures)
       in
-      let () = print_endline ("env2 = " ^ Env.string_of_env env2) in
       (* indices are: 0 = argument, 1... = captures, then locals from e.g. let *)
       let data2, text2 = compile env2 1 e in
       (* closure is given a new stack and local, local at index 0 is argument *)

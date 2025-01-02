@@ -36,11 +36,6 @@ let rec step ((data, text) : program) (s : 'i stack) (l : 'i local) :
     match s with
     | Compiler.Expr (Int x) :: Compiler.Expr (Int y) :: rest ->
         let s' = [ Compiler.Expr (Int (f x y)) ] @ rest in
-        let () =
-          print_endline
-            (string_of_int x ^ " and " ^ string_of_int y ^ " --> "
-            ^ string_of_int (f x y))
-        in
         (p', s', l)
     | _ ->
         failwith
@@ -51,32 +46,13 @@ let rec step ((data, text) : program) (s : 'i stack) (l : 'i local) :
   in
   let p' = (data, List.tl text) in
   let current = List.hd text in
-  let () =
-    print_endline
-      ("--- "
-      ^ Compiler.string_of_inst current
-      ^ "\t*** "
-      ^ (List.map string_of_value s |> String.concat " "))
-  in
   match current with
   | LiteralInt v -> (p', [ Compiler.Expr (Int v) ] @ s, l)
   | LiteralBool v -> (p', [ Compiler.Expr (Bool v) ] @ s, l)
   | LocalLoad i ->
-      (*     let () = print_endline ("from " ^ string_of_int i ^ " loaded " ^ string_of_value (List.nth l i)) in *)
-      let () =
-        print_endline
-          ("load local from " ^ string_of_int i ^ ": "
-          ^ string_of_value (List.nth l i))
-      in
       (p', [ List.nth l i ] @ s, l)
   | LocalStore i -> (p', List.tl s, store_at l i (List.hd s))
   | ClosureLoad (i, n_captures) -> (
-      let () =
-        print_endline
-          ("load closure from " ^ string_of_int i ^ " with "
-         ^ string_of_int n_captures ^ " captures: "
-          ^ string_of_value (List.nth data i))
-      in
       match List.nth data i with
       | Closure (_, p2) ->
           let vars, s' = take_first n_captures s in
@@ -88,16 +64,8 @@ let rec step ((data, text) : program) (s : 'i stack) (l : 'i local) :
       match s with
       | arg :: Compiler.Closure (vars, t2) :: rest ->
           let fn_stack = arg :: vars in
-          let () = print_endline ("fn     is " ^ Compiler.string_of_text t2) in
-          let () =
-            print_endline
-              ("fn_s   is "
-              ^ (List.map string_of_value fn_stack |> String.concat " "))
-          in
-          let () = print_endline ("arg    is " ^ string_of_value arg) in
           let s2, _ = run (data, t2) [] fn_stack in
           let retval = List.hd s2 in
-          let () = print_endline ("^^^ retval is " ^ string_of_value retval) in
           (p', [ retval ] @ rest, l)
       | _ ->
           failwith
@@ -108,7 +76,6 @@ let rec step ((data, text) : program) (s : 'i stack) (l : 'i local) :
   | _ -> failwith ("TODO step with " ^ Compiler.string_of_inst current)
 
 and run (p : program) (s : 'i stack) (l : 'i local) : 'i stack * 'i local =
-  let () = print_endline "vvv run" in
   let rec step' (p : program) (s : 'i stack) (l : 'i local) :
       program * 'i stack * 'i local =
     let (data', text'), s', l' = step p s l in
