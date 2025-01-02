@@ -21,7 +21,7 @@
  (name small_functional_language)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune menhir)
+ (depends ocaml dune menhir ocamlformat)
  (tags
   (topics "to describe" your project)))
 

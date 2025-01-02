@@ -22,6 +22,7 @@
             ocaml
             ocamlPackages.menhir
             ocamlPackages.utop
+            ocamlPackages.ocamlformat
             nixfmt-rfc-style
             dune_3
           ];
