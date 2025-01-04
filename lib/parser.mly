@@ -25,9 +25,13 @@
 %token EOF
 
 %right RARROW
+%nonassoc MINUS
 %nonassoc NOT
 %nonassoc IN
 %nonassoc ELSE
+%left EQUALS
+%left AND
+%left OR
 %left PLUS
 %left TIMES
 %nonassoc TRUE FALSE INT ID_VALUE ID_TYPE LPAREN
