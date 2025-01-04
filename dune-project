@@ -21,7 +21,7 @@
  (name small_functional_language)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune menhir ocamlformat)
+ (depends ocaml dune menhir ocamlformat bitstring ppx_bitstring)
  (tags
   (topics "to describe" your project)))
 

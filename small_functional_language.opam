@@ -14,6 +14,8 @@ depends: [
   "dune" {>= "3.16"}
   "menhir"
   "ocamlformat"
+  "bitstring"
+  "ppx_bitstring"
   "odoc" {with-doc}
 ]
 build: [

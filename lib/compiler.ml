@@ -170,3 +170,9 @@ and string_of_value = function
       "["
       ^ String.concat " " (List.map string_of_value vars)
       ^ "]/{" ^ string_of_text c ^ "}"
+
+let wire_of_inst = function
+  | LiteralInt i ->
+      let%bitstring bits = {| 1 : 4; i : 31 |} in
+      bits
+  | _ -> failwith "TODO"

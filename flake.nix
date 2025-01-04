@@ -23,6 +23,9 @@
             ocamlPackages.menhir
             ocamlPackages.utop
             ocamlPackages.ocamlformat
+            ocamlPackages.bitstring
+            ocamlPackages.ppx_bitstring
+            ocamlPackages.ppxlib
             nixfmt-rfc-style
             dune_3
           ];

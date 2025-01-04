@@ -1,6 +1,9 @@
 (library
  (name small_functional_language)
- (modules ast eval lexer parser type_check compiler vm))
+ (modules ast eval lexer parser type_check compiler vm)
+ (libraries bitstring)
+ (preprocess
+  (pps ppx_bitstring)))
 
 (menhir
  (modules parser))
