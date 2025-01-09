@@ -18,7 +18,7 @@ type inst =
 
 type text = inst list
 type 'i value = Expr of 'i Ast.expr | Closure of 'i value list * text
-(* [Closure (captures, t)] is a closure that runs [t]. [captures] msut be an empty list during compilation, before runtime. *)
+(* [Closure (captures, t)] is a closure that runs [t]. [captures] must be an empty list during compilation, before runtime. *)
 
 type data = string value list
 type program = data * text
@@ -175,4 +175,79 @@ let wire_of_inst = function
   | LiteralInt i ->
       let%bitstring bits = {| 1 : 4; i : 31 |} in
       bits
-  | _ -> failwith "TODO"
+  | LiteralBool b ->
+      let%bitstring bits = {| 2 : 4; b : 1 |} in
+      bits
+  | LocalLoad i ->
+      let%bitstring bits = {| 3 : 4; i : 31 |} in
+      bits
+  | LocalStore i ->
+      let%bitstring bits = {| 4 : 4; i : 31 |} in
+      bits
+  | ClosureLoad (i, n) ->
+      let%bitstring bits = {| 5 : 4; i : 31; n : 31 |} in
+      bits
+  | UnaryNot ->
+      let%bitstring bits = {| 6 : 4 |} in
+      bits
+  | UnaryNeg ->
+      let%bitstring bits = {| 7 : 4 |} in
+      bits
+  | BinaryEqual ->
+      let%bitstring bits = {| 8 : 4 |} in
+      bits
+  | BinaryAdd ->
+      let%bitstring bits = {| 9 : 4 |} in
+      bits
+  | BinaryMul ->
+      let%bitstring bits = {| 10 : 4 |} in
+      bits
+  | BinaryAnd ->
+      let%bitstring bits = {| 11 : 4 |} in
+      bits
+  | BinaryOr ->
+      let%bitstring bits = {| 12 : 4 |} in
+      bits
+  | BinaryApply ->
+      let%bitstring bits = {| 13 : 4 |} in
+      bits
+  | JumpOnFalse i ->
+      let%bitstring bits = {| 14 : 4; i : 31 |} in
+      bits
+
+let inst_of_wire wire =
+  match%bitstring wire with
+  | {| 1 : 4; i : 31 |} -> LiteralInt i
+  | {| 2 : 4; b : 1 |} -> LiteralBool b
+  | {| 3 : 4; i : 31 |} -> LocalLoad i
+  | {| 4 : 4; i : 31 |} -> LocalStore i
+  | {| 5 : 4; i : 31; n : 31 |} -> ClosureLoad (i, n)
+  | {| 6 : 4 |} -> UnaryNot
+  | {| 7 : 4 |} -> UnaryNeg
+  | {| 8 : 4 |} -> BinaryEqual
+  | {| 9 : 4 |} -> BinaryAdd
+  | {| 10 : 4 |} -> BinaryMul
+  | {| 11 : 4 |} -> BinaryAnd
+  | {| 12 : 4 |} -> BinaryOr
+  | {| 13 : 4 |} -> BinaryApply
+  | {| 14 : 4; i : 31 |} -> JumpOnFalse i
+  | {| _ |} -> failwith "invalid wire"
+
+let wire_of_text t = Bitstring.concat (List.map wire_of_inst t)
+let text_of_wire _ = failwith "TODO"
+
+let wire_of_data = function
+  | Expr _ -> failwith "cannot serialize Expr value"
+  | Closure (vars, t) ->
+      let () =
+        if not (vars = []) then failwith "captures must be empty list" else ()
+      in
+      let lText = List.length t in
+      let%bitstring bits = {| 2 : 4; lText : 31 |} in
+      Bitstring.concat [ bits; wire_of_text t ]
+
+let wire_of_program (d, t) =
+  let lData = List.length d in
+  let%bitstring bits = {| 1 : 4; lData : 31 |} in
+  Bitstring.concat
+    [ bits; Bitstring.concat (List.map wire_of_data d); wire_of_text t ]
