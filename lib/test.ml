@@ -1,25 +1,12 @@
 open Small_functional_language
 open Type_check
 
-let test_vm src expected =
-  let lexbuf = Lexing.from_string src in
-  let ast = Parser.program Lexer.read lexbuf in
-  let prog = Compiler.compile Compiler.Env.empty 0 ast in
-  let s, _ = Vm.run prog [] [] in
-  let result = List.hd s in
-  if result = expected then print_endline ("test_vm OK " ^ src)
-  else failwith ("failed - got " ^ Vm.string_of_value result)
-
-let test_eval_only src expected =
+let test_eval src expected =
   let lexbuf = Lexing.from_string src in
   let ast = Parser.program Lexer.read lexbuf in
   let result = Eval.eval ast in
   if result = expected then print_endline ("test_eval OK " ^ src)
   else failwith ("failed - got " ^ Ast.string_of_expr result)
-
-let test_eval src expected =
-  let () = test_eval_only src expected in
-  test_vm src (Compiler.Expr expected)
 
 let test_infer src expected =
   let lexbuf = Lexing.from_string src in
@@ -63,13 +50,6 @@ let test_compose_property (t1 : typ) (s1 : subst) (s2 : subst) : unit =
      ^ string_of_typ t2 ^ " ; t3 = " ^ string_of_typ t3 ^ "\n; s1 = "
      ^ string_of_subst s1 ^ " ; s2 = " ^ string_of_subst s2 ^ " ; s3 = "
      ^ string_of_subst s3)
-
-let test_vars_in e (expected : string list) =
-  let got = Compiler.vars_in e in
-  if got = expected then print_endline "test_vars_in OK"
-  else failwith ("test_vars_in - got " ^ String.concat " " got)
-
-let () = test_vars_in (Closure ("x", Var "x")) []
 
 (* test eval function *)
 let () = test_eval "1" (Int 1)

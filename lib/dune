@@ -1,9 +1,6 @@
 (library
- (name small_functional_language)
- (modules ast eval lexer parser type_check compiler vm)
- (libraries bitstring)
- (preprocess
-  (pps ppx_bitstring)))
+ (name hm_inference_example)
+ (modules ast eval lexer parser type_check))
 
 (menhir
  (modules parser))
@@ -13,4 +10,4 @@
 (test
  (name test)
  (modules test)
- (libraries small_functional_language))
+ (libraries hm_inference_example))

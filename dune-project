@@ -1,6 +1,6 @@
 (lang dune 3.16)
 
-(name small_functional_language)
+(name hm_inference_example)
 
 (using menhir 3.0)
 
@@ -18,10 +18,9 @@
 (documentation https://url/to/documentation)
 
 (package
- (name small_functional_language)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune menhir ocamlformat bitstring ppx_bitstring)
+ (name hm_inference_example)
+ (synopsis "Example implementation of Hindley-Milner's type system with Algorithm W")
+ (depends ocaml dune menhir ocamlformat)
  (tags
   (topics "to describe" your project)))
 

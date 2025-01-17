@@ -1,4 +1,4 @@
 (executable
- (public_name small_functional_language)
+ (public_name hm_inference_example)
  (name main)
- (libraries small_functional_language))
+ (libraries hm_inference_example))
