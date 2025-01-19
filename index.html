@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hindley-Milner Type Inference Example</title>
+    <script type="module">
+      await import('/hm_inference_example.js');
+
+      const input = document.getElementById('input');
+      const evalTA = document.getElementById('eval');
+      const typeofTA = document.getElementById('typeof');
+
+      function compile() {
+        console.log('input changed');
+        const code = input.value;
+        try {
+          const result = hm_inference_example.eval(code);
+          evalTA.value = result;
+        } catch (e) {
+          console.error(e);
+          evalTA.value = e;
+        }
+        try {
+          const typeofResult = hm_inference_example.typeof(code);
+          typeofTA.value = typeofResult;
+        } catch (e) {
+          typeofTA.value = e;
+        }
+      }
+
+      window.addEventListener('load', () => {
+        input.value = `let id = x -> x in (id id) (id id)`;
+        compile();
+      });
+
+      input.addEventListener('input', compile);
+    </script>
+  </head>
+  <body>
+    <h1>Hindley-Milner Type Inference Example</h1>
+    <noscript>
+      This page requires JavaScript to run the type inference engine.
+    </noscript>
+    <h2>Input</h2>
+    <textarea id="input" rows="10" cols="80"></textarea>
+    <h2>Evaluation Result</h2>
+    <textarea id="eval" rows="10" cols="80"></textarea>
+    <h2>Inferred Type of Toplevel Expression</h2>
+    <textarea id="typeof" rows="10" cols="80"></textarea>
+    <footer>
+      This inference code is by <a href="https://nyiyui.ca">nyiyui</a>, 2025.
+    </footer>
+  </body>
+</html>

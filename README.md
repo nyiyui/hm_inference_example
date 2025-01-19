@@ -5,10 +5,14 @@ It is designed to be a practical illustration of how Algorithm W works in OCaml 
 
 Most of the code (e.g. parser, type checker) is contained in `/lib`, with `/lib/type_check.ml` being the type inference/checking code, `/lib/parser.mly` containing parser definitions, etc.
 
-## Instructions to Run
+## Instructions to Build and Run
 
 This project uses [Dune](https://dune.build/) to build and run tests.
 
 There are a couple of options to get Dune:
 - If you already have [Nix](https://nixos.org), you can run `nix develop` in the root directory of this repo. That will install Dune with required OPAM packages.
 - You can install Dune and the required OPAM packages manually, following the normal Dune documentation.
+
+## Instructions to Run the Web Version
+
+Run `python3 -m http.serever --bind 127.0.0.1` in the root directory and open `http://localhost:8000` in your browser.

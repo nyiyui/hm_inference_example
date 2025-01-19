@@ -27,6 +27,7 @@
             ocamlPackages.js_of_ocaml-ppx
             nixfmt-rfc-style
             dune_3
+            python3 # for python3 -m http.server
           ];
         };
       }
