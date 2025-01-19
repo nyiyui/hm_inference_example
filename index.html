@@ -2,6 +2,17 @@
 <html>
   <head>
     <title>Hindley-Milner Type Inference Example</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      
+      main {
+        margin: 0 auto;
+        max-width: 900px;
+        padding: 16px;
+      }
+    </style>
     <script type="module">
       await import('./hm_inference_example.js');
 
@@ -82,19 +93,21 @@
   </nav>
 </div>
 <!-- GENDO END CommonHeader -->
-    <h1>Hindley-Milner Type Inference Example</h1>
-    <noscript>
-      This page requires JavaScript to run the type inference engine.
-    </noscript>
-    <h2>Input</h2>
-    <textarea id="input" rows="10" cols="80"></textarea>
-    <h2>Evaluation Result</h2>
-    <textarea id="eval" rows="10" cols="80"></textarea>
-    <h2>Inferred Type of Toplevel Expression</h2>
-    <textarea id="typeof" rows="10" cols="80"></textarea>
-    <footer>
-      By <a href="https://nyiyui.ca">nyiyui</a>, 2025.
-      <a href="https://github.com/nyiyui/hm_inference_example">Source code</a> is available on GitHub.com.
-    </footer>
+    <main>
+      <h1>Hindley-Milner Type Inference Example</h1>
+      <noscript>
+        This page requires JavaScript to run the type inference engine.
+      </noscript>
+      <h2>Input</h2>
+      <textarea id="input" rows="10" cols="80"></textarea>
+      <h2>Evaluation Result</h2>
+      <textarea id="eval" rows="10" cols="80"></textarea>
+      <h2>Inferred Type of Toplevel Expression</h2>
+      <textarea id="typeof" rows="10" cols="80"></textarea>
+      <footer>
+        By <a href="https://nyiyui.ca">nyiyui</a>, 2025.
+        <a href="https://github.com/nyiyui/hm_inference_example">Source code</a> is available on GitHub.com.
+      </footer>
+    </main>
   </body>
 </html>
