@@ -1,4 +1,4 @@
-open Small_functional_language
+open Hm_inference_example
 open Type_check
 
 let test_eval src expected =
@@ -64,7 +64,7 @@ let () = test_eval "let x = 1 in x + (let y = 2 in y + x)" (Int 4)
 (* 1 + 2 + 1 *)
 (* 4 *)
 
-let () = test_eval_only "x -> x" (Closure ("x", Var "x"))
+let () = test_eval "x -> x" (Closure ("x", Var "x"))
 let () = test_eval "let first = x -> y -> x in first 1 2" (Int 1)
 let () = test_eval "let second = x -> y -> y in second 1 2" (Int 2)
 let () = test_eval "(x -> x) 1" (Int 1)

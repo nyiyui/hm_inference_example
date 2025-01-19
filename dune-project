@@ -9,9 +9,9 @@
 (source
  (github username/reponame))
 
-(authors "Author Name")
+(authors "Ken Shibata")
 
-(maintainers "Maintainer Name")
+(maintainers "Ken Shibata")
 
 (license LICENSE)
 
@@ -20,8 +20,4 @@
 (package
  (name hm_inference_example)
  (synopsis "Example implementation of Hindley-Milner's type system with Algorithm W")
- (depends ocaml dune menhir ocamlformat)
- (tags
-  (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
+ (depends ocaml dune menhir ocamlformat))

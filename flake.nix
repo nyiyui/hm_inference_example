@@ -23,6 +23,8 @@
             ocamlPackages.menhir
             ocamlPackages.utop
             ocamlPackages.ocamlformat
+            ocamlPackages.js_of_ocaml
+            ocamlPackages.js_of_ocaml-ppx
             nixfmt-rfc-style
             dune_3
           ];

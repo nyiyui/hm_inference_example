@@ -144,7 +144,7 @@ let rec unify (t1 : typ) (t2 : typ) : subst =
       (* type variable substitution must happen simultaneously *)
       let s2 = unify (apply_typ s1 rhs1) (apply_typ s1 rhs2) in
       compose s1 s2
-  | _ -> failwith "unification failed"
+  | _ -> failwith ("unification failed between " ^ string_of_typ t1 ^ " and " ^ string_of_typ t2)
 
 let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
   let unary_expect s t = function

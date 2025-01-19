@@ -1,4 +1,5 @@
 (executable
- (public_name hm_inference_example)
  (name main)
- (libraries hm_inference_example))
+ (libraries hm_inference_example)
+ (modes js)
+ (preprocess (pps js_of_ocaml-ppx)))

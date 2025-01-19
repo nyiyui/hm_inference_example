@@ -7,7 +7,7 @@ Most of the code (e.g. parser, type checker) is contained in `/lib`, with `/lib/
 
 ## Instructions to Run
 
-This project uses Dune to build and run tests.
+This project uses [Dune](https://dune.build/) to build and run tests.
 
 There are a couple of options to get Dune:
 - If you already have [Nix](https://nixos.org), you can run `nix develop` in the root directory of this repo. That will install Dune with required OPAM packages.
