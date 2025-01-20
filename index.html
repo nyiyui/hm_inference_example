@@ -101,6 +101,19 @@
         Algorithm W was described by <cite><a href="https://doi.org/10.1016%2F0022-0000%2878%2990014-4">Milner in 1978</a></cite>.
         The <a href="https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system">Wikipedia article</a> may provide a good overview.
       </p>
+      <h2>Syntax</h2>
+      <p>
+        This simple language supports the following syntax:
+      </p>
+      <ul>
+        <li>Variables: <code>add-two</code></li>
+        <li>Function definitions: <code>x -&gt; x + 1</code></li>
+        <li>Function calls: <code>f x</code> calls function <code>f</code> with argument <code>x</code></li>
+        <li>Let expressions: <code>let x = 1 in x + 1</code> (the type checker supports let polymorphism)</li>
+        <li>Arithmetic expressions: <code>(-1) + 2 * 3</code></li>
+        <li>Boolean expressions: <code>true &amp;&amp; !false || true</code></li>
+        <li>Integers: <code>123</code></li>
+      </ul>
       <noscript>
         This page requires JavaScript to run the type inference engine.
       </noscript>
