@@ -7,7 +7,7 @@ on:
 permissions: read-all
 
 jobs:
-  build:
+  runtest:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,7 +16,6 @@ jobs:
         with:
           ocaml-compiler: 5
       - run: opam install . --deps-only --with-test
-      - run: opam exec -- dune build
       - run: opam exec -- dune runtest
 
   lint-doc:
