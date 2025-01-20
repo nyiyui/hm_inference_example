@@ -183,3 +183,8 @@ let () =
     (TCon (TClosure, [ TCon (TClosure, [ TInt; TInt ]); TInt ]))
 (* f :: $1 -> $1 as it is applied to its result *)
 (* expr :: ($1 -> $1) -> $1, but $1 is int *)
+
+let () = test_infer "x -> if x then 1 else 2" (TCon (TClosure, [ TBool; TInt ]))
+
+let () =
+  test_infer "x -> if true then 1 else x" (TCon (TClosure, [ TInt; TInt ]))

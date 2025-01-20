@@ -228,4 +228,11 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
       let ts = generalize env (apply_typ s1 t1) in
       let env' = Env.extend (apply_env s1 env) x ts in
       infer e2 env'
-  | If _ -> failwith "TODO3"
+  | If (e1, e2, e3) ->
+      let t1, s1 = infer e1 env in
+      let t2, s2 = infer e2 env in
+      let t3, s3 = infer e3 env in
+      let s4 = unify t1 TBool in
+      let s5 = unify t2 t3 in
+      let s6 = compose (compose (compose (compose s1 s2) s3) s4) s5 in
+      (apply_typ s6 t2, s6)
