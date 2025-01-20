@@ -165,3 +165,21 @@ let () =
 
 let () = test_infer "true && false" TBool
 let () = test_infer "true || false" TBool
+
+let () =
+  test_infer "let twice = f -> x -> f (f x) in twice"
+    (* expr :: ($1 -> $1) -> $1 -> $1 *)
+    (* f :: $1 -> $1 *)
+    (* x :: $1 *)
+    (TCon
+       ( TClosure,
+         [
+           TCon (TClosure, [ TVar "$1"; TVar "$1" ]);
+           TCon (TClosure, [ TVar "$1"; TVar "$1" ]);
+         ] ))
+
+let () =
+  test_infer "f -> f (f 1)"
+    (TCon (TClosure, [ TCon (TClosure, [ TInt; TInt ]); TInt ]))
+(* f :: $1 -> $1 as it is applied to its result *)
+(* expr :: ($1 -> $1) -> $1, but $1 is int *)

@@ -208,7 +208,7 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
       let a = TVar (gensym ()) in
       let env' = Env.extend env x ([], a) in
       let t, s = infer e env' in
-      (TCon (TClosure, [ a; t ]), s)
+      (TCon (TClosure, [ apply_typ s a; t ]), s)
   | Application (e1, e2) ->
       let a = TVar (gensym ()) in
       let t1, s1 = infer e1 env in
@@ -221,7 +221,7 @@ let rec infer (e : 'i expr) (env : Env.t) : typ * subst =
       (* similarly, RHS might have something useful about the LHS *)
       let t3 = TCon (TClosure, [ t2; a ]) in
       let s3 = unify t1' t3 in
-      let s4 = compose s3 (compose s2 s1) in
+      let s4 = compose (compose s1 s2) s3 in
       (apply_typ s4 a, s4)
   | Let (x, e1, e2) ->
       let t1, s1 = infer e1 env in
