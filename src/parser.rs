@@ -25,11 +25,7 @@ impl Parser {
 
     fn expect(&mut self, expected: Token) {
         if self.current_token() != &expected {
-            panic!(
-                "Expected {:?}, got {:?}",
-                expected,
-                self.current_token()
-            );
+            panic!("Expected {:?}, got {:?}", expected, self.current_token());
         }
         self.advance();
     }
@@ -73,7 +69,7 @@ impl Parser {
 
     fn parse_closure(&mut self) -> Expr {
         let start_pos = self.pos;
-        
+
         // Try to parse as closure: x -> expr
         if let Token::IdValue(param) = self.current_token().clone() {
             self.advance();
@@ -85,67 +81,67 @@ impl Parser {
             // Not a closure, backtrack
             self.pos = start_pos;
         }
-        
+
         self.parse_or()
     }
 
     fn parse_or(&mut self) -> Expr {
         let mut left = self.parse_and();
-        
+
         while let Token::Or = self.current_token() {
             self.advance();
             let right = self.parse_and();
             left = Expr::OpBinary(BinaryOp::Or, Box::new(left), Box::new(right));
         }
-        
+
         left
     }
 
     fn parse_and(&mut self) -> Expr {
         let mut left = self.parse_equality();
-        
+
         while let Token::And = self.current_token() {
             self.advance();
             let right = self.parse_equality();
             left = Expr::OpBinary(BinaryOp::And, Box::new(left), Box::new(right));
         }
-        
+
         left
     }
 
     fn parse_equality(&mut self) -> Expr {
         let mut left = self.parse_additive();
-        
+
         while let Token::Equals = self.current_token() {
             self.advance();
             let right = self.parse_additive();
             left = Expr::OpBinary(BinaryOp::Equal, Box::new(left), Box::new(right));
         }
-        
+
         left
     }
 
     fn parse_additive(&mut self) -> Expr {
         let mut left = self.parse_multiplicative();
-        
+
         while let Token::Plus = self.current_token() {
             self.advance();
             let right = self.parse_multiplicative();
             left = Expr::OpBinary(BinaryOp::Add, Box::new(left), Box::new(right));
         }
-        
+
         left
     }
 
     fn parse_multiplicative(&mut self) -> Expr {
         let mut left = self.parse_unary();
-        
+
         while let Token::Times = self.current_token() {
             self.advance();
             let right = self.parse_unary();
             left = Expr::OpBinary(BinaryOp::Mul, Box::new(left), Box::new(right));
         }
-        
+
         left
     }
 
@@ -167,18 +163,14 @@ impl Parser {
 
     fn parse_application(&mut self) -> Expr {
         let mut left = self.parse_primary();
-        
-        loop {
-            match self.current_token() {
-                Token::Int(_) | Token::True | Token::False | 
-                Token::IdValue(_) | Token::LParen => {
-                    let right = self.parse_primary();
-                    left = Expr::Application(Box::new(left), Box::new(right));
-                }
-                _ => break,
-            }
+
+        while let Token::Int(_) | Token::True | Token::False | Token::IdValue(_) | Token::LParen =
+            self.current_token()
+        {
+            let right = self.parse_primary();
+            left = Expr::Application(Box::new(left), Box::new(right));
         }
-        
+
         left
     }
 

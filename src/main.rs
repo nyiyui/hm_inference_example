@@ -47,9 +47,7 @@ fn repl() {
 fn run_program(input: &str) {
     // Tokenize
     let mut lexer = lexer::Lexer::new(input);
-    let tokens = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        lexer.tokenize()
-    })) {
+    let tokens = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| lexer.tokenize())) {
         Ok(tokens) => tokens,
         Err(_) => {
             println!("Error: Failed to tokenize input");
@@ -93,4 +91,3 @@ fn run_program(input: &str) {
 
 #[cfg(test)]
 mod tests;
-

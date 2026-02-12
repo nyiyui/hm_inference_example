@@ -96,13 +96,13 @@ impl Lexer {
 
     fn read_number(&mut self) -> i32 {
         let mut num_str = String::new();
-        
+
         // Handle negative sign
         if self.current_char() == Some('-') {
             num_str.push('-');
             self.advance();
         }
-        
+
         while let Some(ch) = self.current_char() {
             if ch.is_ascii_digit() {
                 num_str.push(ch);
@@ -111,13 +111,13 @@ impl Lexer {
                 break;
             }
         }
-        
+
         num_str.parse().unwrap_or(0)
     }
 
     fn read_identifier(&mut self) -> String {
         let mut id = String::new();
-        
+
         while let Some(ch) = self.current_char() {
             if ch.is_alphanumeric() || ch == '_' || ch == '-' || ch == '\'' {
                 id.push(ch);
@@ -126,7 +126,7 @@ impl Lexer {
                 break;
             }
         }
-        
+
         id
     }
 
@@ -139,7 +139,7 @@ impl Lexer {
                 if ch.is_ascii_digit() {
                     return Token::Int(self.read_number());
                 }
-                
+
                 if ch == '-' {
                     if let Some(next) = self.peek_char(1) {
                         if next == '>' {

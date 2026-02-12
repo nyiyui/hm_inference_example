@@ -32,8 +32,8 @@ fn test_infer(src: &str, expected: Typ) {
     type_check::reset_gensym();
     let ast = parse(src);
     let env = Env::new();
-    let (result, _) = type_check::infer(&ast, &env)
-        .expect(&format!("test_infer failed for: {}", src));
+    let (result, _) =
+        type_check::infer(&ast, &env).expect(&format!("test_infer failed for: {}", src));
     let result = type_check::lower(&result);
     assert_eq!(
         result, expected,
@@ -65,7 +65,10 @@ fn test_eval_let() {
 
 #[test]
 fn test_eval_closure() {
-    test_eval("x -> x", Expr::Closure("x".to_string(), Box::new(Expr::Var("x".to_string()))));
+    test_eval(
+        "x -> x",
+        Expr::Closure("x".to_string(), Box::new(Expr::Var("x".to_string()))),
+    );
 }
 
 #[test]
@@ -76,7 +79,10 @@ fn test_eval_application() {
     test_eval("(x -> x) (y -> y) 1", Expr::Int(1));
     test_eval("(x -> x) (x -> x) 1", Expr::Int(1));
     test_eval("let identity = x -> x in identity 1", Expr::Int(1));
-    test_eval("let identity = x -> x in let x = 2 in identity x", Expr::Int(2));
+    test_eval(
+        "let identity = x -> x in let x = 2 in identity x",
+        Expr::Int(2),
+    );
     test_eval("let f = x -> y -> x + y in f 1 2", Expr::Int(3));
 }
 

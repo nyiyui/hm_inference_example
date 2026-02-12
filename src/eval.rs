@@ -28,10 +28,9 @@ fn subst(e: &Expr, v: &Expr, x: &str) -> Expr {
                 Expr::Closure(y.clone(), Box::new(subst(e1, v, x)))
             }
         }
-        Expr::Application(e1, e2) => Expr::Application(
-            Box::new(subst(e1, v, x)),
-            Box::new(subst(e2, v, x)),
-        ),
+        Expr::Application(e1, e2) => {
+            Expr::Application(Box::new(subst(e1, v, x)), Box::new(subst(e2, v, x)))
+        }
         Expr::Let(y, e1, e2) => {
             let e1_prime = subst(e1, v, x);
             if y == x {
@@ -46,10 +45,7 @@ fn subst(e: &Expr, v: &Expr, x: &str) -> Expr {
 pub fn eval(e: &Expr) -> Result<Expr, String> {
     match e {
         Expr::Int(_) | Expr::Bool(_) | Expr::Closure(_, _) => Ok(e.clone()),
-        Expr::Var(x) => Err(format!(
-            "unbound variable {} while evaluating {}",
-            x, e
-        )),
+        Expr::Var(x) => Err(format!("unbound variable {} while evaluating {}", x, e)),
         Expr::OpUnary(uop, e1) => eval_uop(uop, e1),
         Expr::OpBinary(bop, e1, e2) => eval_bop(bop, e1, e2),
         Expr::Application(e1, e2) => {
