@@ -19,14 +19,6 @@ impl Parser {
         }
     }
 
-    fn peek_token(&self, offset: usize) -> &Token {
-        if self.pos + offset < self.tokens.len() {
-            &self.tokens[self.pos + offset]
-        } else {
-            &Token::Eof
-        }
-    }
-
     fn advance(&mut self) {
         self.pos += 1;
     }
